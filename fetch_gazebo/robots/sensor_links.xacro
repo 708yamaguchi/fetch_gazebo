@@ -1,0 +1,179 @@
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="fetch" >
+
+  <!-- gripper exteriors -->
+  <xacro:macro name="apf" params="l_r offset" >
+    <link name="${l_r}_apfinger_link" >
+      <visual>
+        <origin rpy="0 0 0" xyz="0.01 ${offset} 0"/>
+        <geometry>
+          <box size="0.060 0.030 0.045"/>
+        </geometry>
+        <material name="">
+          <color rgba="0 0.500 0 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="0 0 0" xyz="0.01 ${offset} 0"/>
+        <geometry>
+          <box size="0.060 0.030 0.045"/>
+        </geometry>
+      </collision>
+      <inertial> <!-- not accurate -->
+        <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+        <origin rpy="0 0 0" xyz="0.01 ${offset} 0"/>
+        <mass value="0.1"/>
+      </inertial>
+    </link>
+    <joint name="${l_r}_apfinger_joint" type="fixed">
+      <parent link="${l_r}_gripper_finger_link"/>
+      <child link="${l_r}_apfinger_link"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <axis xyz="0 1 0"/>
+    </joint>
+    <gazebo reference="${l_r}_apfinger_link">
+      <!-- Please set params. e.g. friction, stiffness, damping, ... etc -->
+      <selfCollide>false</selfCollide>
+      <material>Gazebo/Green</material>
+    </gazebo>
+  </xacro:macro>
+
+  <!-- Add gripper exteriors -->
+  <xacro:apf l_r="l" offset="0.01" />
+  <xacro:apf l_r="r" offset="-0.01" />
+
+  <!-- plugin for vcnl4040 proximity sensors  -->
+  <xacro:macro name="vcnl4040" params="l_r frame sensor_num rpy xyz" >
+    <xacro:arg name="sensor_name" default="proximity_sensor_tf/${l_r}/${frame}/${sensor_num}" />
+    <!-- Define sensor link -->
+    <link name="proximity_sensor_tf/${l_r}/${frame}/${sensor_num}" />
+    <joint name="proximity_sensor_joint/${l_r}/${frame}/${sensor_num}" type="fixed">
+      <parent link="gripper_link"/>
+      <child link="proximity_sensor_tf/${l_r}/${frame}/${sensor_num}"/>
+      <origin rpy="${rpy}" xyz="${xyz}"/>
+      <axis xyz="0 1 0"/>
+    </joint>
+    <!-- Add sensor model -->
+    <gazebo reference="proximity_sensor_tf/${l_r}/${frame}/${sensor_num}">
+      <sensor type="ray" name="TeraRanger">
+        <pose>0 0 0 0 0 0</pose>
+        <visualize>true</visualize> <!-- set true to visualize sensing range cone -->
+        <update_rate>50</update_rate>
+        <ray>
+          <scan>
+            <horizontal>
+              <samples>10</samples>
+              <resolution>1</resolution>
+              <min_angle>-0.2618</min_angle> <!-- 15 degree -->
+              <max_angle>0.2618</max_angle>
+            </horizontal>
+            <vertical>
+              <samples>10</samples>
+              <resolution>1</resolution>
+              <min_angle>-0.2618</min_angle>
+              <max_angle>0.2618</max_angle>
+            </vertical>
+          </scan>
+          <range>
+            <min>0.0</min>
+            <max>0.05</max>
+            <resolution>0.005</resolution>
+          </range>
+        </ray>
+        <plugin filename="libgazebo_ros_range.so" name="gazebo_ros_range/${l_r}/${frame}/${sensor_num}">
+          <gaussianNoise>0.005</gaussianNoise>
+          <alwaysOn>true</alwaysOn>
+          <updateRate>50</updateRate>
+          <topicName>/proximity_sensor/${l_r}/${frame}/${sensor_num}</topicName>
+          <frameName>proximity_sensor_tf/${l_r}/${frame}/${sensor_num}</frameName>
+          <radiation>INFRARED</radiation>
+          <fov>0.5236</fov> <!-- 30 degree -->
+        </plugin>
+      </sensor>
+    </gazebo>
+  </xacro:macro>
+
+  <!-- Add left finger sensors -->
+  <xacro:vcnl4040 l_r="left" frame="top" sensor_num="0" rpy="0 0 0" xyz="0.040 -0.061 -0.008"/>
+  <xacro:vcnl4040 l_r="left" frame="top" sensor_num="1" rpy="0 0 0" xyz="0.040 -0.054 -0.008"/>
+  <xacro:vcnl4040 l_r="left" frame="top" sensor_num="2" rpy="0 0 0" xyz="0.040 -0.061 0.008"/>
+  <xacro:vcnl4040 l_r="left" frame="top" sensor_num="3" rpy="0 0 0" xyz="0.040 -0.054 0.008"/>
+
+  <xacro:vcnl4040 l_r="left" frame="side0" sensor_num="0" rpy="1.571 0 1.571" xyz="0 -0.045 -0.002"/>
+  <xacro:vcnl4040 l_r="left" frame="side0" sensor_num="1" rpy="1.571 0 1.571" xyz="0 -0.045 0.004"/>
+  <xacro:vcnl4040 l_r="left" frame="side0" sensor_num="2" rpy="1.571 0 1.571" xyz="0.009 -0.045 -0.002"/>
+  <xacro:vcnl4040 l_r="left" frame="side0" sensor_num="3" rpy="1.571 0 1.571" xyz="0.009 -0.045 0.004"/>
+  <xacro:vcnl4040 l_r="left" frame="side0" sensor_num="4" rpy="1.571 0 1.571" xyz="0.017 -0.045 -0.002"/>
+  <xacro:vcnl4040 l_r="left" frame="side0" sensor_num="5" rpy="1.571 0 1.571" xyz="0.017 -0.045 0.004"/>
+  <xacro:vcnl4040 l_r="left" frame="side0" sensor_num="6" rpy="1.571 0 1.571" xyz="0.026 -0.045 -0.002"/>
+  <xacro:vcnl4040 l_r="left" frame="side0" sensor_num="7" rpy="1.571 0 1.571" xyz="0.026 -0.045 0.004"/>
+
+  <xacro:vcnl4040 l_r="left" frame="side1" sensor_num="0" rpy="3.142 -1.571 0" xyz="0 -0.055 0.020"/>
+  <xacro:vcnl4040 l_r="left" frame="side1" sensor_num="1" rpy="3.142 -1.571 0" xyz="0 -0.062 0.020"/>
+  <xacro:vcnl4040 l_r="left" frame="side1" sensor_num="2" rpy="3.142 -1.571 0" xyz="0.009 -0.055 0.020"/>
+  <xacro:vcnl4040 l_r="left" frame="side1" sensor_num="3" rpy="3.142 -1.571 0" xyz="0.009 -0.062 0.020"/>
+  <xacro:vcnl4040 l_r="left" frame="side1" sensor_num="4" rpy="3.142 -1.571 0" xyz="0.017 -0.055 0.020"/>
+  <xacro:vcnl4040 l_r="left" frame="side1" sensor_num="5" rpy="3.142 -1.571 0" xyz="0.017 -0.062 0.020"/>
+  <xacro:vcnl4040 l_r="left" frame="side1" sensor_num="6" rpy="3.142 -1.571 0" xyz="0.026 -0.055 0.020"/>
+  <xacro:vcnl4040 l_r="left" frame="side1" sensor_num="7" rpy="3.142 -1.571 0" xyz="0.026 -0.062 0.020"/>
+
+  <xacro:vcnl4040 l_r="left" frame="side2" sensor_num="0" rpy="-1.571 -0 -1.571" xyz="0 -0.072 0.004"/>
+  <xacro:vcnl4040 l_r="left" frame="side2" sensor_num="1" rpy="-1.571 -0 -1.571" xyz="0 -0.072 -0.002"/>
+  <xacro:vcnl4040 l_r="left" frame="side2" sensor_num="2" rpy="-1.571 -0 -1.571" xyz="0.009 -0.072 0.004"/>
+  <xacro:vcnl4040 l_r="left" frame="side2" sensor_num="3" rpy="-1.571 -0 -1.571" xyz="0.009 -0.072 -0.002"/>
+  <xacro:vcnl4040 l_r="left" frame="side2" sensor_num="4" rpy="-1.571 -0 -1.571" xyz="0.017 -0.072 0.004"/>
+  <xacro:vcnl4040 l_r="left" frame="side2" sensor_num="5" rpy="-1.571 -0 -1.571" xyz="0.017 -0.072 -0.002"/>
+  <xacro:vcnl4040 l_r="left" frame="side2" sensor_num="6" rpy="-1.571 -0 -1.571" xyz="0.026 -0.072 0.004"/>
+  <xacro:vcnl4040 l_r="left" frame="side2" sensor_num="7" rpy="-1.571 -0 -1.571" xyz="0.026 -0.072 -0.002"/>
+
+  <xacro:vcnl4040 l_r="left" frame="side3" sensor_num="0" rpy="0 1.571 0" xyz="0 -0.062 -0.020"/>
+  <xacro:vcnl4040 l_r="left" frame="side3" sensor_num="1" rpy="0 1.571 0" xyz="0 -0.055 -0.020"/>
+  <xacro:vcnl4040 l_r="left" frame="side3" sensor_num="2" rpy="0 1.571 0" xyz="0.009 -0.062 -0.020"/>
+  <xacro:vcnl4040 l_r="left" frame="side3" sensor_num="3" rpy="0 1.571 0" xyz="0.009 -0.055 -0.020"/>
+  <xacro:vcnl4040 l_r="left" frame="side3" sensor_num="4" rpy="0 1.571 0" xyz="0.017 -0.062 -0.020"/>
+  <xacro:vcnl4040 l_r="left" frame="side3" sensor_num="5" rpy="0 1.571 0" xyz="0.017 -0.055 -0.020"/>
+  <xacro:vcnl4040 l_r="left" frame="side3" sensor_num="6" rpy="0 1.571 0" xyz="0.026 -0.062 -0.020"/>
+  <xacro:vcnl4040 l_r="left" frame="side3" sensor_num="7" rpy="0 1.571 0" xyz="0.026 -0.055 -0.020"/>
+
+  <!-- Add right finger sensors -->
+  <xacro:vcnl4040 l_r="right" frame="top" sensor_num="0" rpy="0 0 0" xyz="0.040 0.054 -0.008"/>
+  <xacro:vcnl4040 l_r="right" frame="top" sensor_num="1" rpy="0 0 0" xyz="0.040 0.061 -0.008"/>
+  <xacro:vcnl4040 l_r="right" frame="top" sensor_num="2" rpy="0 0 0" xyz="0.040 0.054 0.008"/>
+  <xacro:vcnl4040 l_r="right" frame="top" sensor_num="3" rpy="0 0 0" xyz="0.040 0.061 0.008"/>
+
+  <xacro:vcnl4040 l_r="right" frame="side0" sensor_num="0" rpy="-1.571 -0 -1.571" xyz="0 0.045 0.004"/>
+  <xacro:vcnl4040 l_r="right" frame="side0" sensor_num="1" rpy="-1.571 -0 -1.571" xyz="0 0.045 -0.002"/>
+  <xacro:vcnl4040 l_r="right" frame="side0" sensor_num="2" rpy="-1.571 -0 -1.571" xyz="0.009 0.045 0.004"/>
+  <xacro:vcnl4040 l_r="right" frame="side0" sensor_num="3" rpy="-1.571 -0 -1.571" xyz="0.009 0.045 -0.002"/>
+  <xacro:vcnl4040 l_r="right" frame="side0" sensor_num="4" rpy="-1.571 -0 -1.571" xyz="0.017 0.045 0.004"/>
+  <xacro:vcnl4040 l_r="right" frame="side0" sensor_num="5" rpy="-1.571 -0 -1.571" xyz="0.017 0.045 -0.002"/>
+  <xacro:vcnl4040 l_r="right" frame="side0" sensor_num="6" rpy="-1.571 -0 -1.571" xyz="0.026 0.045 0.004"/>
+  <xacro:vcnl4040 l_r="right" frame="side0" sensor_num="7" rpy="-1.571 -0 -1.571" xyz="0.026 0.045 -0.002"/>
+
+  <xacro:vcnl4040 l_r="right" frame="side1" sensor_num="0" rpy="3.142 -1.571 0" xyz="0 0.062 0.020"/>
+  <xacro:vcnl4040 l_r="right" frame="side1" sensor_num="1" rpy="3.142 -1.571 0" xyz="0 0.055 0.020"/>
+  <xacro:vcnl4040 l_r="right" frame="side1" sensor_num="2" rpy="3.142 -1.571 0" xyz="0.009 0.062 0.020"/>
+  <xacro:vcnl4040 l_r="right" frame="side1" sensor_num="3" rpy="3.142 -1.571 0" xyz="0.009 0.055 0.020"/>
+  <xacro:vcnl4040 l_r="right" frame="side1" sensor_num="4" rpy="3.142 -1.571 0" xyz="0.017 0.062 0.020"/>
+  <xacro:vcnl4040 l_r="right" frame="side1" sensor_num="5" rpy="3.142 -1.571 0" xyz="0.017 0.055 0.020"/>
+  <xacro:vcnl4040 l_r="right" frame="side1" sensor_num="6" rpy="3.142 -1.571 0" xyz="0.026 0.062 0.020"/>
+  <xacro:vcnl4040 l_r="right" frame="side1" sensor_num="7" rpy="3.142 -1.571 0" xyz="0.026 0.055 0.020"/>
+
+  <xacro:vcnl4040 l_r="right" frame="side2" sensor_num="0" rpy="1.571 -0 1.571" xyz="0 0.072 -0.002"/>
+  <xacro:vcnl4040 l_r="right" frame="side2" sensor_num="1" rpy="1.571 -0 1.571" xyz="0 0.072 0.004"/>
+  <xacro:vcnl4040 l_r="right" frame="side2" sensor_num="2" rpy="1.571 -0 1.571" xyz="0.009 0.072 -0.002"/>
+  <xacro:vcnl4040 l_r="right" frame="side2" sensor_num="3" rpy="1.571 -0 1.571" xyz="0.009 0.072 0.004"/>
+  <xacro:vcnl4040 l_r="right" frame="side2" sensor_num="4" rpy="1.571 -0 1.571" xyz="0.017 0.072 -0.002"/>
+  <xacro:vcnl4040 l_r="right" frame="side2" sensor_num="5" rpy="1.571 -0 1.571" xyz="0.017 0.072 0.004"/>
+  <xacro:vcnl4040 l_r="right" frame="side2" sensor_num="6" rpy="1.571 -0 1.571" xyz="0.026 0.072 -0.002"/>
+  <xacro:vcnl4040 l_r="right" frame="side2" sensor_num="7" rpy="1.571 -0 1.571" xyz="0.026 0.072 0.004"/>
+
+  <xacro:vcnl4040 l_r="right" frame="side3" sensor_num="0" rpy="0 1.571 0" xyz="0 0.055 -0.020"/>
+  <xacro:vcnl4040 l_r="right" frame="side3" sensor_num="1" rpy="0 1.571 0" xyz="0 0.062 -0.020"/>
+  <xacro:vcnl4040 l_r="right" frame="side3" sensor_num="2" rpy="0 1.571 0" xyz="0.009 0.055 -0.020"/>
+  <xacro:vcnl4040 l_r="right" frame="side3" sensor_num="3" rpy="0 1.571 0" xyz="0.009 0.062 -0.020"/>
+  <xacro:vcnl4040 l_r="right" frame="side3" sensor_num="4" rpy="0 1.571 0" xyz="0.017 0.055 -0.020"/>
+  <xacro:vcnl4040 l_r="right" frame="side3" sensor_num="5" rpy="0 1.571 0" xyz="0.017 0.062 -0.020"/>
+  <xacro:vcnl4040 l_r="right" frame="side3" sensor_num="6" rpy="0 1.571 0" xyz="0.026 0.055 -0.020"/>
+  <xacro:vcnl4040 l_r="right" frame="side3" sensor_num="7" rpy="0 1.571 0" xyz="0.026 0.062 -0.020"/>
+
+</robot>

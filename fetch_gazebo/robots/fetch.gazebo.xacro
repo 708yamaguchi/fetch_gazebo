@@ -200,4 +200,7 @@
     <plugin name="fetch_gazebo_plugin" filename="libfetch_gazebo_plugin.so"/>
   </gazebo>
 
+  <!-- Load proximity sensor models -->
+  <xacro:include filename="$(find fetch_gazebo)/robots/sensor_links.xacro" />
+
 </robot>
